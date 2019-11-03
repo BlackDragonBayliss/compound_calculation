@@ -24,51 +24,44 @@ type Month struct {
 	AmountGained float64
 }
 
-type EquilibriumModel struct {
-	ListAmountAtMonthInterval  []float64
-	EquilibriumValue           float64
-	AmountNeededForEquilibrium float64
-}
-
 type NominalModel struct {
-	ListAmountAtMonthInterval   []float64
-	AmountOfMonthsInCalculation int
-	FinalAmount                 float64
+	ListGainedAmount []float64
+	MonthNominal     int
 }
 
 func main() {
-	investment = 5030.00
+	// investment = 5030.00
+	investment = 13030.00
 	costOfLiving = 750.00
 	taxBuffer = .0463
 	gainRate = .02
 	amountCalculationMatrix := compoundCalculation(investment, gainRate, 5, 12)
-	// compoundCalculation
-	for i, v := range amountCalculationMatrix.ListAmountAtMonthInterval {
-		fmt.Println(v)
-		i++
-	}
 
-	calculateEquilibriumModel(amountCalculationMatrix)
-
-	// calculateNominalModel()
+	nominalModel := calculateNominalModel(amountCalculationMatrix, costOfLiving, taxBuffer)
+	// for i, v := range nominalModel.ListGainedAmount {
+	// 	fmt.Println(v)
+	// 	i++
+	// }
+	fmt.Println(nominalModel)
 	fmt.Scanln()
 }
 
-func calculateEquilibriumModel(amountCalculationMatrix AmountCalculationMatrix) EquilibriumModel {
-
+func calculateNominalModel(amountCalculationMatrix AmountCalculationMatrix, costOfLiving float64, taxBuffer float64) NominalModel {
 	//Given all metrics, at which day will equilibrium be met if any
-	equilibriumModel := EquilibriumModel{}
-
-	// costOfLiving
-	return equilibriumModel
+	nominalModel := NominalModel{}
+	isFirstNominalMonth := true
+	for i, v := range amountCalculationMatrix.ListAmountAtMonthInterval {
+		calculatedGross := (v.AmountGained - (v.AmountGained * taxBuffer)) - costOfLiving
+		if calculatedGross >= 0 {
+			if isFirstNominalMonth {
+				nominalModel.MonthNominal = i
+				isFirstNominalMonth = false
+			}
+			nominalModel.ListGainedAmount = append(nominalModel.ListGainedAmount, calculatedGross)
+		}
+	}
+	return nominalModel
 }
-
-// func calculateMonthGross(amountCalculationMatrix AmountCalculationMatrix){
-// 	for
-// }
-
-// func calculateNominal() {
-// }
 
 func compoundCalculation(startingValue float64, rate float64, amountGainPeriods int, amountmonths int) AmountCalculationMatrix {
 	updatedValue := 0.0
