@@ -31,17 +31,15 @@ type NominalModel struct {
 
 func main() {
 	// investment = 5030.00
-	investment = 13030.00
+	investment = 5030.00
 	costOfLiving = 750.00
 	taxBuffer = .0463
 	gainRate = .02
-	amountCalculationMatrix := compoundCalculation(investment, gainRate, 5, 12)
-
+	taxableIncomeBiMonth := 1000.00
+	incomeTotal := 9000.00
+	amountCalculationMatrix := compoundCalculation(investment, gainRate, 5, 12, taxableIncomeBiMonth, incomeTotal)
+	// for i, v := range amountCalculationMatrix.ListAmountAtMonthInterval {
 	nominalModel := calculateNominalModel(amountCalculationMatrix, costOfLiving, taxBuffer)
-	// for i, v := range nominalModel.ListGainedAmount {
-	// 	fmt.Println(v)
-	// 	i++
-	// }
 	fmt.Println(nominalModel)
 	fmt.Scanln()
 }
@@ -63,11 +61,15 @@ func calculateNominalModel(amountCalculationMatrix AmountCalculationMatrix, cost
 	return nominalModel
 }
 
-func compoundCalculation(startingValue float64, rate float64, amountGainPeriods int, amountmonths int) AmountCalculationMatrix {
+func compoundCalculation(startingValue float64, rate float64, amountGainPeriods int, amountmonths int, taxableIncomeBiMonth float64, incomeTotal float64) AmountCalculationMatrix {
 	updatedValue := 0.0
 	indexAmountMonths := 0
 	indexAmountGainPeriods := 0
+	amountIncomeGained := 0.0
+	incomeAddition := taxableIncomeBiMonth
 	amountCalculationMatrix := AmountCalculationMatrix{}
+
+	// taxableIncomeBiMonth float64, incomeTotal float64
 	for indexAmountMonths < amountmonths {
 		month := Month{}
 		indexAmountGainPeriods = 0
@@ -76,10 +78,26 @@ func compoundCalculation(startingValue float64, rate float64, amountGainPeriods 
 			amountCalculationMatrix.StartingAmount = startingValue
 			amountCalculationMatrix.AmountOfMonthsInCalculation = amountmonths
 		}
+
 		for indexAmountGainPeriods < amountGainPeriods {
+			//Account for income added bi-week
+			if indexAmountGainPeriods%2 == 0 {
+				if indexAmountGainPeriods != 0 {
+					amountIncomeGained += incomeAddition
+					updatedValue += incomeAddition
+					//Account for income total reached, income becomes 0
+					if amountIncomeGained == incomeTotal {
+						incomeAddition = 0.0
+					}
+					fmt.Println(indexAmountMonths)
+					fmt.Println(updatedValue)
+				}
+			}
+			fmt.Println(updatedValue)
 			updatedValue = updatedValue + (updatedValue * rate)
 			indexAmountGainPeriods++
 		}
+
 		month.AmountTotal = updatedValue
 		amountCalculationMatrix.ListAmountAtMonthInterval = append(amountCalculationMatrix.ListAmountAtMonthInterval, month)
 		indexAmountMonths++
